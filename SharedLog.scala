@@ -5,20 +5,24 @@ package ox.cads.testing
   * effect upon the caches of threads, thereby possibly missing Java Memory
   * Model-based errors. 
   * @tparam S the type of the sequential specification object. 
-  * @tparam C the type of the concurrent object. 
-  * @param invocs the number of invocations to be logged
+  * @tparam C the type of the concurrent object.
   * @param concObj the concurrent object.
   * @param mkInvoke function to create an InvokeEvent.
   * @param mkReturn function to create a new ReturnEvent.
 */
 
 class SharedLog[S,C](
-  invocs: Int, concObj: C, 
+  concObj: C,
   mkInvoke: GenericLog.MkInvokeType[S], mkReturn: GenericLog.MkReturnType)
 extends GenericLog[S, C]{
 
   /** BoundedBuffer used to store Events. */
-  private val inQueue = new ox.cads.collection.BoundedBuffer[Event](2*invocs)
+  private val inQueue =  new scala.collection.mutable.ArrayBuffer[Event]
+
+  // private val outer = this
+
+  /** Add e to inQueue. */
+  @inline private def add(e: Event) = synchronized{ inQueue += e } 
 
   /** Internal GenericThreadLog object. */
   class SharedThreadLog(t: Int) extends GenericThreadLog[S,C]{
@@ -35,11 +39,12 @@ extends GenericLog[S, C]{
     * @param seqOp the corresponding operation on the sequential datatype. */
     def log[A,B](concOp: C => A, msg: String, seqOp: S => B) = {
       // log invocation
-      val e = mkInvoke(t,msg,seqOp); inQueue.add(e)
+      val e = mkInvoke(t,msg,seqOp); add(e)
       // perform operation
       val result = concOp(concObj)
       // log return
-      val e1 = mkReturn(t, result); inQueue.add(e1); e.ret = e1
+      val e1 = mkReturn(t, result); add(e1)
+      e.ret = e1
     }
   }
 
@@ -47,7 +52,7 @@ extends GenericLog[S, C]{
   def apply(t: Int) = new SharedThreadLog(t)
 
   /** Get the contents of the log */
-  def getLog : Array[Event] = inQueue.getAll
+  def getLog : Array[Event] = inQueue.toArray
 
 }
   

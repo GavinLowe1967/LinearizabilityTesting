@@ -4,24 +4,18 @@ package ox.cads.testing
   * @tparam S the type of the sequential datatype. 
   * @tparam C the type of the concurrent datatype. 
   * @param t the identity of the thread.
-  * @param iters the number of operations performed by this worker. 
   * @param concObj the concurrent object shared between workers. 
   * @param mkInvoke function to create an InvokeEvent.
   * @param mkReturn function to create a new ReturnEvent.  */ 
 
 class TSThreadLog[S,C](
-  t: Int, iters: Int, concObj: C,
+  t: Int, concObj: C,
   mkInvoke: GenericLog.MkInvokeType[S], mkReturn: GenericLog.MkReturnType)
 extends GenericThreadLog[S,C]
 {
-  /** Number of events expected. */
-  private val length = 2*iters
 
   /** Array holding the events. */
-  private val events = new Array[TS[Event]](length)
-		 
-  /** Index of next free slot in events. */
-  private var index = 0
+  private val events = new scala.collection.mutable.ArrayBuffer[TS[Event]]
 
   /** Log that thread t performs operation described by msg.
     *
@@ -32,21 +26,18 @@ extends GenericThreadLog[S,C]
     *
     * @param concOp the operation on the concurrent datatype.
     * @param seqOp  the corresponding operation on the sequential datatype. */
-  def log[A,B](concOp: C => A, msg: String, seqOp: S => B) = {
-    require(index < length, 
-            s"Too many operation invocations: maximum $iters expected.")
+  def log[A,B](concOp: C => A, msg: String, seqOp: S => B) = { 
     // log invocation
-    val e = mkInvoke(t, msg, seqOp) 
-    events(index) = new TS(e); index += 1
+    val e = mkInvoke(t, msg, seqOp); events += new TS(e)
     // perform operation
     val result = concOp(concObj)
     // log return
-    val e1 = mkReturn(t, result) 
-    events(index) = new TS(e1); index += 1; e.ret = e1
+    val e1 = mkReturn(t, result); events += new TS(e1)
+    e.ret = e1
   }
 
   /** Get the log. */
-  protected[testing] def get : Array[TS[Event]] = events
+  protected[testing] def get : Array[TS[Event]] = events.toArray
 
 }
 

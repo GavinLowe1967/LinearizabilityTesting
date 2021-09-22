@@ -13,14 +13,13 @@ import scala.collection.mutable.ArrayBuffer
   * @param worker a function that produces a worker, given its identity and a 
   *   log to use.
   * @param p the number of workers.
-  * @param iters the number of iterations to be performed by each worker.
   * @param concObj the concurrent object to use.
   * @param seqObj the sequential specification object.
   * @param solver the generic solver to use. */ 
 class LinearizabilityTester[S, C, L <: GenericLog[S,C]](
   mkLog: (GenericLog.MkInvokeType[S], GenericLog.MkReturnType) => L,
   worker: LinearizabilityTester.WorkerType[S,C],
-  p: Int, iters: Int, concObj: C, seqObj: S, solver: GenericSolver[S, Event])
+  p: Int, concObj: C, seqObj: S, solver: GenericSolver[S, Event])
 {
   /** Run the tester.
     * @return a result as defined in Solver. */ 
@@ -32,6 +31,7 @@ class LinearizabilityTester[S, C, L <: GenericLog[S,C]](
     // Test for linearizability
     solver.solve(log.getLog)
   }
+
 }
 
 // --------- Companion object ---------
@@ -41,11 +41,11 @@ object LinearizabilityTester{
   /** Type of functions that produce workers. */
   type WorkerType[S,C] = (Int, GenericThreadLog[S, C]) => Unit
 
-  private def mkLog[S, C](tsLog: Boolean, p: Int, iters: Int, concObj: C)(
+  private def mkLog[S, C](tsLog: Boolean, p: Int, concObj: C)(
       mkInvoke: GenericLog.MkInvokeType[S], mkReturn: GenericLog.MkReturnType)
       : GenericLog[S,C]
-  = if(tsLog) new TSLog[S,C](p, iters, concObj, mkInvoke, mkReturn)
-    else new SharedLog[S,C](p*iters, concObj, mkInvoke, mkReturn)
+  = if(tsLog) new TSLog[S,C](p, concObj, mkInvoke, mkReturn)
+    else new SharedLog[S,C](concObj, mkInvoke, mkReturn)
 
   // --------- Factory methods ---------
 
@@ -61,9 +61,9 @@ object LinearizabilityTester{
     * @param tsLog should a timestamp-based log be used? */
   def WGGraph[S, C](
       seqObj: S, concObj: C, p: Int, worker: WorkerType[S,C], 
-      iters: Int, tsLog: Boolean = true, maxSize: Long = -1) 
+      tsLog: Boolean = true, maxSize: Long = -1) 
   = new LinearizabilityTester[S, C, GenericLog[S,C]](
-      mkLog(tsLog, p, iters, concObj), worker, p, iters, 
+      mkLog(tsLog, p, concObj), worker, p, // iters, 
       concObj, seqObj, new WGGraph[S](seqObj, p, maxSize)
     )
 
@@ -79,9 +79,9 @@ object LinearizabilityTester{
     * @param tsLog should a timestamp-based log be used? */
   def WGTree[S <: Undoable, C](
       seqObj: S, concObj: C, p: Int, worker: WorkerType[S,C], 
-      iters: Int, tsLog: Boolean = true, maxSize: Long = -1) 
+      tsLog: Boolean = true, maxSize: Long = -1) 
   = new LinearizabilityTester[S, C, GenericLog[S,C]](
-      mkLog(tsLog, p, iters, concObj), worker, p, iters, 
+      mkLog(tsLog, p, concObj), worker, p, // iters, 
       concObj, seqObj, new WGLinearizabilityTester[S](seqObj, p, maxSize)
     )
   
@@ -97,10 +97,27 @@ object LinearizabilityTester{
     * @param tsLog should a timestamp-based log be used? */
   def JITTree[S <: Undoable, C](
       seqObj: S, concObj: C, p: Int, worker: WorkerType[S,C], 
-      iters: Int, tsLog: Boolean = true, maxSize: Long = -1)
+      tsLog: Boolean = true, maxSize: Long = -1)
   = new LinearizabilityTester[S, C, GenericLog[S,C]](
-      mkLog(tsLog, p, iters, concObj), worker, p, iters, 
+      mkLog(tsLog, p, concObj), worker, p, // iters, 
       concObj, seqObj, new JITLinUndoTester[S](seqObj, p, maxSize)
+    )
+
+  /** Produce a linearizability tester based on JIT Graph Search and a 
+    * shared log. 
+    * @tparam S the type of the sequential specification datatype.
+    * @tparam C the type of concurrent datatypes.   
+    * @param seqObj the sequential specification datatype. 
+    * @param concObj the concurrent object. 
+    * @param p the number of threads.
+    * @param worker a function that produces a worker.
+    * @param tsLog should a timestamp-based log be used? */
+  def JITGraph[S, C](
+      seqObj: S, concObj: C, p: Int, worker: WorkerType[S,C], 
+      tsLog: Boolean = true, maxSize: Long = -1) 
+  = new LinearizabilityTester[S, C, GenericLog[S,C]](
+      mkLog(tsLog, p, concObj), worker, p, // iters, 
+      concObj, seqObj, new DFSGraphJITLinTester[S](seqObj, p, maxSize)
     )
 
   /** Produce a linearizability tester based on JIT Graph Search and a 
@@ -113,13 +130,15 @@ object LinearizabilityTester{
     * @param worker a function that produces a worker.
     * @param iters the number of iters performed by each worker.
     * @param tsLog should a timestamp-based log be used? */
-  def JITGraph[S, C](
-      seqObj: S, concObj: C, p: Int, worker: WorkerType[S,C], 
-      iters: Int, tsLog: Boolean = true, maxSize: Long = -1) 
-  = new LinearizabilityTester[S, C, GenericLog[S,C]](
-      mkLog(tsLog, p, iters, concObj), worker, p, iters, 
-      concObj, seqObj, new DFSGraphJITLinTester[S](seqObj, p, maxSize)
-    )
+  // @deprecated("the iters parameter, giving the number of iterations by each "+ 
+  //   "worker, is now not needed, and ignored.", "Linearizability Testing 2.0")
+  // def JITGraph[S, C](
+  //     seqObj: S, concObj: C, p: Int, worker: WorkerType[S,C], 
+  //     iters: Int, tsLog: Boolean = true/*, maxSize: Long = -1*/) 
+  // = new LinearizabilityTester[S, C, GenericLog[S,C]](
+  //     mkLog(tsLog, p, concObj), worker, p, // iters, 
+  //     concObj, seqObj, new DFSGraphJITLinTester[S](seqObj, p, -1 /*maxSize*/)
+  //   )
 
   /** Produce a linearizability tester based on breadth-first JIT Graph 
     * Search and a shared log. 
@@ -133,9 +152,9 @@ object LinearizabilityTester{
     * @param tsLog should a timestamp-based log be used? */
   def BFSJIT[S <: AnyRef, C](
       seqObj: S, concObj: C, p: Int, worker: WorkerType[S,C], 
-      iters: Int, tsLog: Boolean = true, maxSize: Long = -1)
+      tsLog: Boolean = true, maxSize: Long = -1)
   = new LinearizabilityTester[S, C, GenericLog[S,C]](
-      mkLog(tsLog, p, iters, concObj), worker, p, iters, 
+      mkLog(tsLog, p, concObj), worker, p, //iters, 
       concObj, seqObj, new BFSJITLinTester[S](seqObj, p, maxSize)
     )
 

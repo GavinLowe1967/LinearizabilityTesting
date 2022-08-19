@@ -12,8 +12,7 @@ class SharedQueueCompetitionLog[A, S, C](
 extends QueueCompetitionLog[A, S, C]{
 
   /** BoundedBuffer used to store Events. */
-  private val inQueue = 
-    new ox.cads.collection.BoundedBuffer[(QueueLinNode,Event)](2*invocs)
+  private val inQueue = new BoundedBuffer[(QueueLinNode,Event)](2*invocs)
 
   /** Internal QueueCompetitionThreadLog object used by thread t. */
   class SharedThreadLog(t: Int) extends QueueCompetitionThreadLog[A,S,C]{

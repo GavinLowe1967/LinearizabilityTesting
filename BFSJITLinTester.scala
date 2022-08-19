@@ -1,6 +1,6 @@
 package ox.cads.testing
 
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
 import scala.collection.mutable.ArrayBuffer
 
 /** A tester for linearizabilty.  

@@ -1,7 +1,7 @@
 package ox.cads.testing
 
 import scala.collection.mutable.ArrayBuffer
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
 
 /** A configuration of the testing automaton in the Linear Tester.
   * @param stateWrapper a wrapper around the state of the sequential object
@@ -42,12 +42,19 @@ class Configuration[S]
     * (destructive). */
   private def fireReturn(t: Int, msg: String, op: S => (Any, S), result: Any)
   : Boolean = {
-    val (result1, newStateW) = stateWrapper.doOp(msg, op)
-    // println(stateWrapper.get+" -"+t+"."+msg+"-> "+newStateW.get)
-    if(result1 == result){
-      stateWrapper = newStateW; tStates.logFireReturn(t); true
+    try{
+      val (result1, newStateW) = stateWrapper.doOp(msg, op)
+      // println(stateWrapper.get+" -"+t+"."+msg+"-> "+newStateW.get)
+      if(result1 == result){
+        stateWrapper = newStateW; tStates.logFireReturn(t); true
+      }
+      else false
+    } catch {
+      case _ : java.lang.IllegalArgumentException =>
+        // This is outside the precondition of the operation in the
+        // sequential object
+        false
     }
-    else false
   }
 
   /** Create new configurations caused by firing any pending operations from
@@ -85,13 +92,20 @@ class Configuration[S]
     * resulting configuration; otherwise return null (non-destructive). */
   private def fire1(t: Int) : Configuration[S] = {
     val (msg, op, expectedRes) = tStates.getOp(t)
-    val (result, newStateW) = stateWrapper.doOp(msg, op)
-    if(expectedRes == result){
-      // println(stateWrapper.get+" -"+t+"."+msg+"-> "+newStateW.get)
-      val newTStates = tStates.logFire(t, result)
-      new Configuration(newStateW, newTStates)
+    try{
+      val (result, newStateW) = stateWrapper.doOp(msg, op)
+      if(expectedRes == result){
+        // println(stateWrapper.get+" -"+t+"."+msg+"-> "+newStateW.get)
+        val newTStates = tStates.logFire(t, result)
+        new Configuration(newStateW, newTStates)
+      }
+      else null
+    } catch {
+      case _ : java.lang.IllegalArgumentException =>
+        // This is outside the precondition of the operation in the
+        // sequential object
+        null
     }
-    else null
   }
   /** Create all configurations reachable by firing operations from this, 
     * other than the operation of t.  (Non-destructive). */
@@ -198,7 +212,7 @@ class Configuration[S]
   override def toString = "Configuration("+state+" , "+tStates+")"
 
   override def equals(other: Any) = other match{
-    case (c:Configuration[S]) => 
+    case (c:Configuration[S @unchecked]) => 
       tStates == c.tStates && stateWrapper == c.stateWrapper
   }
 

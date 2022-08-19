@@ -1,8 +1,7 @@
-
 package ox.cads.testing
 
 import scala.collection.mutable.ArrayBuffer
-import ox.cads.util.Profiler
+// import ox.cads.util.Profiler
 import scala.collection.mutable.Map
 
 /** A wrapper around a state of type S, but allowing equivalence classes to 

@@ -1,6 +1,6 @@
 package ox.cads.testing
 
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
 import scala.language.existentials 
 
 /** A linearization tester.
@@ -79,7 +79,7 @@ extends GenericSolver[S, Event]{
       }
       if(interrupted) return Solver.Interrupted 
       nextEv match {
-	case ie : LLInvokeEvent[S,_,_] => {
+	case ie : LLInvokeEvent[S @unchecked,_,_] => {
 	  val ret = ie.ret.asInstanceOf[LLReturnEvent[Any]] // return event
 	  // See if the operation can be linearized here
           try{
@@ -95,7 +95,7 @@ extends GenericSolver[S, Event]{
 	      // Reset to find next op to linearize
 	      nextEv = logHeader.next
 	    }
-	    else{ seqObj.undo; nextEv = nextEv.next }
+	    else{ seqObj.undo(); nextEv = nextEv.next }
           } catch {
             case _ : java.lang.IllegalArgumentException =>
               // This is outside the precondition of the operation in the
@@ -112,9 +112,9 @@ extends GenericSolver[S, Event]{
 	    debug(maxPrefixLinearized, logHeader) 
 	    return Solver.Failure
 	  }
-	  val (undoEv, pl) = stack.pop // events to undo 
+	  val (undoEv, pl) = stack.pop() // events to undo 
 	  // Undo undoEv; re-insert in log
-	  seqObj.undo; LLNode.unlift(undoEv)
+	  seqObj.undo(); LLNode.unlift(undoEv)
 	  prefixLinearized = pl
 	  nextEv = undoEv.next  // Advance to next event
 	}

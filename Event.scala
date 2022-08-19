@@ -1,5 +1,6 @@
 package ox.cads.testing
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
+
 /** Events used for logging operation calls and returns. */
 class Event
 
@@ -73,7 +74,7 @@ object LLNode{
   def printLog(logHeader: LLNode) = {
     var n = logHeader.next
     while(n != null){ println(n); n = n.next }
-    println
+    println()
   }
 }
 

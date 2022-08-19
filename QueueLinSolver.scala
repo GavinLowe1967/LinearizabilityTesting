@@ -1,5 +1,5 @@
 package ox.cads.testing
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
 import scala.collection.mutable.ArrayBuffer
 
 /** A class performing linearizability testing on concurrent queues.
@@ -58,7 +58,7 @@ extends Solver[QueueLinNode]{
 	    else if(deqIx == maxDeqReached) validEnqs ++= enqVals
 	    if(stack.nonEmpty){    // pop from stack and backtrack
 	      // Profiler.count("Backtracked")
-	      val (et, dt, oldList) = stack.pop
+	      val (et, dt, oldList) = stack.pop()
 	      history = new QLTHistory[A](oldList.toArray, p)
 	      // find matching events
 	      history.removeMatchingPairFor(et, dt)

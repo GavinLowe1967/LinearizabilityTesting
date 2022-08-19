@@ -1,6 +1,6 @@
 package ox.cads.testing
 
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
 import scala.collection.mutable.{HashSet,Stack}
 import scala.language.existentials 
 
@@ -129,7 +129,7 @@ extends GenericSolver[S, Event]{
 	    return Solver.Failure
 	  } 
 	  // old state; event to undo; old value of prefixLinearized
-	  val (newWrapper, undoEv, pl) = stack.pop 
+	  val (newWrapper, undoEv, pl) = stack.pop() 
 	  wrapper = newWrapper; LLNode.unlift(undoEv) // re-insert in log
 	  linearized -= undoEv.ret.asInstanceOf[LLReturnEvent[_]].index 
 	  // no longer linearized
@@ -157,7 +157,7 @@ extends GenericSolver[S, Event]{
 	write(e.toString)
 	e match{
 	  case re: LLReturnEvent[_] => done = re.index == maxPrefixLinearized
-	  case ie: LLInvokeEvent[S,_,_] => { 
+	  case ie: LLInvokeEvent[S @unchecked,_,_] => { 
 	    val ret = ie.ret.asInstanceOf[LLReturnEvent[_]]
 	    if(ret.index == maxPrefixLinearized)
 	      write("\t-- Previous event not linearized")

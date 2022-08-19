@@ -14,8 +14,7 @@ package ox.cads.testing
 class SharedQueueLog[A, C](invocs: Int, concQueue: C)
 extends QueueLog[A, C]{
   /** BoundedBuffer used to store Events. */
-  private val inQueue = 
-    new ox.cads.collection.BoundedBuffer[QueueLinNode](2*invocs)
+  private val inQueue = new BoundedBuffer[QueueLinNode](2*invocs)
 
   /** Internal GenericThreadLog object. */
   class SharedThreadLog(t: Int) extends QueueThreadLog[A,C]{

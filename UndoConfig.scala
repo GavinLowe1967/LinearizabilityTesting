@@ -55,7 +55,7 @@ class UndoConfig[S <: Undoable](seqObj: S, p: Int){
         // println(stateWrapper.get+" -"+t+"."+msg+"-> "+newStateW.get)
         tStates(t) = Ret(result); Left(pe)
       }
-      else{ seqObj.undo; Right(result) } // Can't linearize here
+      else{ seqObj.undo(); Right(result) } // Can't linearize here
     } catch{
       case _ : java.lang.IllegalArgumentException =>
         // This is outside the precondition of the operation in the
@@ -87,12 +87,13 @@ class UndoConfig[S <: Undoable](seqObj: S, p: Int){
 	// println(stateWrapper.get+" -"+t+"."+msg+"-> "+newStateW.get)
 	tStates(t) = Out; Left(e)
       }
-      else{ seqObj.undo; Right(result) }
+      else{ seqObj.undo(); Right(result) }
     }
   }
 
   /** Does t have a pending operation? */
-  def hasPending(t: Int) : Boolean = tStates(t).isInstanceOf[Pending[S,_]]
+  def hasPending(t: Int) : Boolean = 
+    tStates(t).isInstanceOf[Pending[S @unchecked,_]]
 
   /** Can t's operation return? */
   def canReturn(t: Int) : Boolean = tStates(t).isInstanceOf[Ret]
@@ -105,7 +106,7 @@ class UndoConfig[S <: Undoable](seqObj: S, p: Int){
   /** Undo the last event, resetting t's state to prev. */
   def undo(t: Int, prev: ThreadState) = {
     assert(tStates(t).isInstanceOf[Ret] || tStates(t) == Out)
-    if(prev.isInstanceOf[Pending[S,_]]) seqObj.undo
+    if(prev.isInstanceOf[Pending[S @unchecked,_]]) seqObj.undo()
     tStates(t) = prev
   }
 }

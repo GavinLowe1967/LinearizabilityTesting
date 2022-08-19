@@ -1,5 +1,5 @@
 package ox.cads.testing
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -129,7 +129,7 @@ class QLTHistory[A](es: Array[QueueLinNode], p: Int, verbose: Boolean = false){
 
     // Find last return before d
     var prevRet = d.prev
-    while(prevRet.isInstanceOf[EnqueueInvokeEvent[A]] || 
+    while(prevRet.isInstanceOf[EnqueueInvokeEvent[A @unchecked]] || 
 	  prevRet.isInstanceOf[DequeueInvokeEvent])
       prevRet = prevRet.prev
 
@@ -218,8 +218,8 @@ class QLTHistory[A](es: Array[QueueLinNode], p: Int, verbose: Boolean = false){
     // enqueued before first return event
     var ev = head.next; var returns = new ArrayBuffer[Option[A]]() 
     var minimal = true // has there been no return event yet?
-    while(! ev.isInstanceOf[DequeueReturnEvent[A]]){
-      if(ev.isInstanceOf[EnqueueInvokeEvent[A]] && minimal)
+    while(! ev.isInstanceOf[DequeueReturnEvent[A @unchecked]]){
+      if(ev.isInstanceOf[EnqueueInvokeEvent[A @unchecked]] && minimal)
 	returns += Some(ev.asInstanceOf[EnqueueInvokeEvent[A]].value)
       else if(ev.isInstanceOf[EnqueueReturnEvent])
 	minimal = false
@@ -264,7 +264,7 @@ class QLTHistory[A](es: Array[QueueLinNode], p: Int, verbose: Boolean = false){
     val eR = earliestReturn
     for(t <- 0 until p){
       val e = firstEvent(t)
-      if(e.isInstanceOf[EnqueueInvokeEvent[A]] && e.index < eR){
+      if(e.isInstanceOf[EnqueueInvokeEvent[A @unchecked]] && e.index < eR){
 	// This is a minimal enqueue. 
 	val inv = e.asInstanceOf[EnqueueInvokeEvent[A]]
 	val value = inv.value 
@@ -306,8 +306,8 @@ class QLTHistory[A](es: Array[QueueLinNode], p: Int, verbose: Boolean = false){
 	  // Search for an earlier-ending dequeue of the same value
 	  var ev = d.next; var isEE = true
 	  while(ev != ret && isEE){
-            if(ev.isInstanceOf[DequeueReturnEvent[A]] &&          
-               ev.asInstanceOf[DequeueReturnEvent[A]].result == result)
+            if(ev.isInstanceOf[DequeueReturnEvent[A @unchecked]] &&          
+               ev.asInstanceOf[DequeueReturnEvent[A @unchecked]].result == result)
               isEE = false
             ev = ev.next
 	  } // end of while loop
@@ -407,7 +407,7 @@ class QLTHistory[A](es: Array[QueueLinNode], p: Int, verbose: Boolean = false){
     val eR = earliestReturn
     for(t <- 0 until p){
       val e = firstEvent(t)
-      if(e.isInstanceOf[EnqueueInvokeEvent[A]] && e.index < eR){
+      if(e.isInstanceOf[EnqueueInvokeEvent[A @unchecked]] && e.index < eR){
 	// This is a minimal enqueue.  
 	val value = e.asInstanceOf[EnqueueInvokeEvent[A]].value 
 	val retIndex = e.nextLocal.index // index of return

@@ -1,5 +1,5 @@
 package ox.cads.testing
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
 import scala.collection.mutable.ArrayBuffer
 
 /** A tester for linearizabilty.  
@@ -80,7 +80,7 @@ extends GenericSolver[S, Event]{
 	println("JIT Graph Search giving up"); return Solver.OutOfSteam
       }
       //Profiler.count("iter")
-      if(current == null) current = stack.pop 
+      if(current == null) current = stack.pop() 
       current match{
 	case Solve(config,i) => {
 	  if(i == events.size) return Solver.Success //done!
@@ -90,7 +90,7 @@ extends GenericSolver[S, Event]{
 	      // log += (t+" invokes "+msg)
 	      if(verbose) println(s"${(config,i)}: $t invokes $msg")
 	      if(i > maxReachedFor(t)){
-		maxReachedFor(t) = i; allowedResults(t).clear
+		maxReachedFor(t) = i; allowedResults(t).clear()
 	      }
 	      val newConfig = config.logInvoke(t, msg, op, im.ret.result)
 	      if(verbose) println("Adding "+newConfig+", "+(i+1))

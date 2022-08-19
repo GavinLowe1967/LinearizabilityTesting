@@ -7,7 +7,7 @@ class ThreadStates[S](val states: Array[ThreadStates.ThreadState]){
 
   /** Does t have an operation pending? */
   def hasPending(t: Int) : Boolean = 
-    states(t).isInstanceOf[ThreadStates.Pending[S,_]]
+    states(t).isInstanceOf[ThreadStates.Pending[S @unchecked,_]]
 
   /** Number of pending operations. */
   def numPending = {
@@ -18,7 +18,8 @@ class ThreadStates[S](val states: Array[ThreadStates.ThreadState]){
 
   /** Get pending operation. */
   def getOp[A](t: Int) : (String, S => (Any, S), Any) = {
-    val ThreadStates.Pending(msg, op : (S => (Any, S)), result) = states(t)
+    val ThreadStates.Pending(msg, op: (S => (Any, S)) @unchecked, result) = 
+      states(t)
     (msg, op, result)
   }
 
@@ -48,7 +49,7 @@ class ThreadStates[S](val states: Array[ThreadStates.ThreadState]){
 
   /** Log that t fired op and returned (destructive). */
   def logFireReturn(t: Int) = {
-    assert(states(t).isInstanceOf[ThreadStates.Pending[S,_]])
+    assert(states(t).isInstanceOf[ThreadStates.Pending[S @unchecked,_]])
     states(t) = ThreadStates.Out
   }
 
@@ -67,7 +68,8 @@ class ThreadStates[S](val states: Array[ThreadStates.ThreadState]){
   /** Give new ThreadStates object corresponding to t doing op 
     * producing res (non-destructive). */ 
   def logFire[A](t: Int, res: A) : ThreadStates[S] = {
-    assert(states(t).isInstanceOf[ThreadStates.Pending[S,A]])
+    assert(states(t).isInstanceOf[ThreadStates.Pending[S @unchecked,_]])
+    // assert(states(t).isInstanceOf[ThreadStates.Pending[S,A]])
     val newStates = states.clone
     newStates(t) = ThreadStates.Ret(res)
     new ThreadStates(newStates)
@@ -89,7 +91,7 @@ class ThreadStates[S](val states: Array[ThreadStates.ThreadState]){
 
   /** Log that t fired op and returned (non-destructive). */
   def logFireReturn1(t: Int)  : ThreadStates[S] = {
-    assert(states(t).isInstanceOf[ThreadStates.Pending[S,_]])
+    assert(states(t).isInstanceOf[ThreadStates.Pending[S @unchecked,_]])
     val newStates = states.clone; newStates(t) = ThreadStates.Out
     new ThreadStates(newStates)
   }
@@ -100,7 +102,7 @@ class ThreadStates[S](val states: Array[ThreadStates.ThreadState]){
     (0 until length) . map(i => s"$i: ${states(i)}") . mkString("<", "; ", ">")
 
   override def equals(other: Any) = other match{ 
-    case (t: ThreadStates[S]) => {
+    case (t: ThreadStates[S @unchecked]) => {
       var i = 0
       while(i < length && states(i) == t.states(i)) i += 1
       i==length

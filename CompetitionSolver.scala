@@ -1,5 +1,5 @@
 package ox.cads.testing
-import ox.cads.util.{ThreadUtil, Profiler}
+//import ox.cads.util.{ThreadUtil, Profiler}
 import scala.reflect.ClassTag
 
 /** Competition parallel competition of two solvers. */
@@ -19,11 +19,11 @@ class CompetitionSolver[E1 <: Event, E2 <: Event]
       results(1) = solver2.solve(events.map(_._2).toArray)
       if(results(1) != Solver.OutOfSteam) solver1.interrupt
     }
-    ThreadUtil.runParallel(thread1, thread2)
+    CompetitionParallel.runParallel(thread1, thread2)
     // Extract the result
     if(results(0) == Solver.Error || results(1) == Solver.Error){
       // One of the threads threw an error
-      println("Error! "+(results(0),results(1))); sys.exit
+      println("Error! "+(results(0),results(1))); sys.exit()
     }
     if(results(1) == Solver.Interrupted || results(1) == Solver.OutOfSteam){ 
       /*Profiler.count("solver1"); */ results(0) 
@@ -35,10 +35,29 @@ class CompetitionSolver[E1 <: Event, E2 <: Event]
     else{ 
       // Profiler.count("draw"); 
       if(results(0) != results(1)){ 
-	println("results differ! "+(results(0),results(1))); sys.exit
+	println("results differ! "+(results(0),results(1))); sys.exit()
       }
       results(0) 
     }
   }
 }
   
+// ==================================================================
+
+object CompetitionParallel{
+  /* Note: this duplicates code in ox.cads.util.ThreadUtil, but makes the code
+   * more independent. */
+
+  /** Create a thread that performs comp */
+  private def mkThread(comp: => Unit) : Thread = 
+    new Thread(new Runnable{ def run = comp })
+
+  /** Create a system from `p` and `q`; run the system, terminating when both 
+    * terminate */
+  def runParallel(p: => Unit, q: => Unit) = {
+    val threads = Array(mkThread(p), mkThread(q))
+    threads.foreach(_.start)
+    threads.foreach(_.join)
+  }
+
+}

@@ -22,8 +22,7 @@ class SharedCompetitionLog[S1, S2, C](
 extends CompetitionLog[S1, S2, C]{
 
   /** BoundedBuffer used to store Events. */
-  private val inQueue = 
-    new ox.cads.collection.BoundedBuffer[(Event,Event)](2*invocs)
+  private val inQueue = new BoundedBuffer[(Event,Event)](2*invocs)
 
   /** Internal CompetitionThreadLog object. */
   class SharedThreadLog(t: Int) extends CompetitionThreadLog[S1, S2, C]{

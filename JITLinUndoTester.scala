@@ -1,6 +1,6 @@
 package ox.cads.testing
 
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
 import scala.collection.mutable.ArrayBuffer
 
 /** A linearizability tester based on just-in-time linearization, depth-first 
@@ -83,7 +83,7 @@ extends GenericSolver[S, Event]{
       case im @ InvokeEvent(t, msg, op) => {
 	if(verbose) println(s"${(seqObj,i)}: $t invokes $msg")
 	if(i > maxReachedFor(t)){
-	  maxReachedFor(t) = i; allowedResults(t).clear
+	  maxReachedFor(t) = i; allowedResults(t).clear()
 	}
 	val op1 = op.asInstanceOf[S => Any]
 	config.invoke(t, msg, op1, im.ret.result)
@@ -204,7 +204,7 @@ extends GenericSolver[S, Event]{
       if(count == maxSize){ 
 	println("JIT Tree Search giving up"); return Solver.OutOfSteam
       }
-      if(current == null) current = stack.pop
+      if(current == null) current = stack.pop()
       current match{
 	case Solve(i) => {
 	  if(i == es.size) return Solver.Success //done!
@@ -213,7 +213,7 @@ extends GenericSolver[S, Event]{
 	    case im @ InvokeEvent(t, msg, op) => {
 	      if(verbose) println(s"($seqObj, $i): $t invokes $msg")
 	      if(i > maxReachedFor(t)){
-		maxReachedFor(t) = i; allowedResults(t).clear
+		maxReachedFor(t) = i; allowedResults(t).clear()
 	      }
 	      val op1 = op.asInstanceOf[S => Any]
 	      config.invoke(t, msg, op1, im.ret.result)

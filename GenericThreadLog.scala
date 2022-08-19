@@ -17,7 +17,10 @@ abstract class GenericThreadLog[S, C]{
     * @param msg a string describing the operation, used in debugging output; 
     * semantically different operations should use different strings.  
     * @param seqOp the corresponding operation on the sequential datatype. */
-  def log[A,B](concOp: C => A, msg: String, seqOp: S => B): Unit
+  def log[A,B](concOp: C => A, msg: String, seqOp: S => B): Unit    
+
+  // def log2[A,U,B](concOp: C => A, msg: String, seqOp: S => U, seqOpExit: S => B)
+  //     : Unit
 
   /** Log that the thread performs an operation. 
     *

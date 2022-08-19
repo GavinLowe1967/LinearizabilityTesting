@@ -1,6 +1,5 @@
-
 package ox.cads.testing
-import ox.cads.util.Profiler
+//import ox.cads.util.Profiler
 
 /** An implementation of bit maps, with an efficient check for equality.
   * The set contains elements from [0..size). */

@@ -36,6 +36,10 @@ extends GenericThreadLog[S,C]
     e.ret = e1
   }
 
+  // def log2[A,U,B](
+  //   concOp: C => A, msg: String, seqOp: S => U, seqOpExit: S => B) = ???
+
+
   /** Get the log. */
   protected[testing] def get : Array[TS[Event]] = events.toArray
 
